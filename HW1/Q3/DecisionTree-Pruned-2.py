@@ -7,11 +7,15 @@ import numpy as np
 from collections import Counter
 from operator import itemgetter
 
+# This program uses different technique to get the Splitting Point of an attribute
+# We first sort the dataset based on the attribute. Then we take the mean of two consecutive values and
+# check for the gain using it as the splitting point. Then we take the splitting point which gives the best gain
+
 
 # Enter You Name Here
 myname = "Irfan-Ali-" # or "Doe-Jane-"
 
-# Implement the Node Class
+# Implement the Tree Node Class
 class Node():
     splittingPoint = -1
     attrNumber = -1
@@ -25,28 +29,12 @@ class DecisionTree():
     attributes = ["fixed acidity",	"volatile acidity",	"citric acid",	"residual sugar",	"chlorides",	"free sulfur dioxide",	"total sulfur dioxide",	"density",	"pH",	"sulphates",	"alcohol"]
     rootNode = None
     counter = 0
-    threshold = 0.35
+    threshold = 0.32
     def learn(self, training_set):
         # implement this function
         print("threshold = %f" % self.threshold)
         self.rootNode = self.getRootNode(training_set)
         print("Total Nodes = %d" % self.counter)
-
-        # extract attributes from dataset and evaluate the gain for each attribute
-            # create an empty list of size 11 (11 attributes) to store the gain of each attribute
-            # iterate over attributes and evaluate gain
-                # add gain to the list
-
-        # Select the highest gain attribute and calculate the splitting point
-            # use this 'https://datascience.stackexchange.com/questions/24339/how-is-a-splitting-point-chosen-for-continuous-variables-in-decision-trees' to get splitting algorithm
-
-        # Split the dataset into 2 parts based on splitting point
-
-        # Find the next attribute to split on the two parts of the data set recursively
-
-        # Repeat the above process till the max length of tree is reached
-
-
 
     # implement this function
     def classify(self, test_instance):
@@ -64,8 +52,6 @@ class DecisionTree():
     # implement the getRootNode function
     def getRootNode(self,training_set):
         node = self.addTreeNode(training_set)
-        if node == None :
-            print("Hey its none here")
         return node
 
     # implement the add node function
@@ -122,29 +108,21 @@ class DecisionTree():
         return thisNode
 
     # implement the splitting point function using a better strategy
-    # def getSPandGain(self,training_set,columnNO,classEntropy) :
-    #     def getKey(item):
-    #         return item[columnNO]
-    #     training_set = sorted(training_set, key=getKey)
-    #     gain = -1
-    #     splittingPoint = -1
-    #     i = 0
-    #     while i < len(training_set) -1 :
-    #         if training_set[i][-1] != training_set[i+1][-1] :
-    #             sp = (float(training_set[i][columnNO]) + float(training_set[i+1][columnNO]))/2
-    #             tempGain = self.getGain(training_set,columnNO,sp,classEntropy)
-    #             if tempGain > gain :
-    #                 gain = tempGain
-    #                 splittingPoint = sp
-    #         i += 1
-    #     return splittingPoint, gain
-
-    # splitting point function using mean. Use the below function by commenting the above function and uncommenting this one
     def getSPandGain(self,training_set,columnNO,classEntropy) :
-        def avg(lst):
-            return sum(lst)/len(lst)
-        splittingPoint = avg([float(elem[columnNO]) for elem in training_set])
-        gain = self.getGain(training_set,columnNO,splittingPoint,classEntropy)
+        def getKey(item):
+            return item[columnNO]
+        training_set = sorted(training_set, key=getKey)
+        gain = -1
+        splittingPoint = -1
+        i = 0
+        while i < len(training_set) -1 :
+            if training_set[i][-1] != training_set[i+1][-1] :
+                sp = (float(training_set[i][columnNO]) + float(training_set[i+1][columnNO]))/2
+                tempGain = self.getGain(training_set,columnNO,sp,classEntropy)
+                if tempGain > gain :
+                    gain = tempGain
+                    splittingPoint = sp
+            i += 1
         return splittingPoint, gain
 
 

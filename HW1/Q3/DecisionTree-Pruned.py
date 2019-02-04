@@ -25,7 +25,7 @@ class DecisionTree():
     attributes = ["fixed acidity",	"volatile acidity",	"citric acid",	"residual sugar",	"chlorides",	"free sulfur dioxide",	"total sulfur dioxide",	"density",	"pH",	"sulphates",	"alcohol"]
     rootNode = None
     counter = 0
-    threshold = 0.11
+    threshold = 0.32
     def learn(self, training_set):
         # implement this function
         print("threshold = %f" % self.threshold)
@@ -56,14 +56,14 @@ class DecisionTree():
         c = Counter(elem[-1] for elem in training_set)
         positives = c['1']
         negatives = c['0']
-        classGI = self.getGiniIndex(positives,negatives)
+        classEntropy = self.getEntropy(positives,negatives)
         self.counter += 1
         attrColumn = -1
         splitPoint = 0
         gain = -1
         i = 0
         while i < 11 :
-            sp,tempGain = self.getSPandGI(training_set,i,classGI)
+            sp,tempGain = self.getSPandGain(training_set,i,classEntropy)
             if gain < tempGain :
                 gain = tempGain
                 attrColumn = i
@@ -80,7 +80,7 @@ class DecisionTree():
         c = Counter(elem[-1] for elem in rightSet)
         p1 = c['1']
         n1 = c['0']
-        if self.getGiniIndex(p1,n1) <= self.threshold :
+        if self.getEntropy(p1,n1) <= self.threshold :
             node = Node()
             node.isLeaf = True
             node.result = 1 if p1 > n1 else 0
@@ -93,7 +93,7 @@ class DecisionTree():
         p2 = c['1']
         n2 = c['0']
 
-        if self.getGiniIndex(p2,n2) <= self.threshold :
+        if self.getEntropy(p2,n2) <= self.threshold :
             node = Node()
             node.isLeaf = True
             node.result =  1 if p2 > n2 else 0
@@ -104,37 +104,55 @@ class DecisionTree():
 
         return thisNode
 
+    # implement the splitting point function using a better strategy
+    # def getSPandGain(self,training_set,columnNO,classEntropy) :
+    #     def getKey(item):
+    #         return item[columnNO]
+    #     training_set = sorted(training_set, key=getKey)
+    #     gain = -1
+    #     splittingPoint = -1
+    #     i = 0
+    #     while i < len(training_set) -1 :
+    #         if training_set[i][-1] != training_set[i+1][-1] :
+    #             sp = (float(training_set[i][columnNO]) + float(training_set[i+1][columnNO]))/2
+    #             tempGain = self.getGain(training_set,columnNO,sp,classEntropy)
+    #             if tempGain > gain :
+    #                 gain = tempGain
+    #                 splittingPoint = sp
+    #         i += 1
+    #     return splittingPoint, gain
 
-    # splitting point function using mean.
-    def getSPandGI(self,training_set,columnNO,classGI) :
+    # splitting point function using mean. Use the below function by commenting the above function and uncommenting this one
+    def getSPandGain(self,training_set,columnNO,classEntropy) :
         def avg(lst):
             return sum(lst)/len(lst)
         splittingPoint = avg([float(elem[columnNO]) for elem in training_set])
-        gain = self.getGain(training_set,columnNO,splittingPoint,classGI)
+        gain = self.getGain(training_set,columnNO,splittingPoint,classEntropy)
         return splittingPoint, gain
 
 
     # implement the gain function
-    def getGain(self,training_set,columnNO,splittingPoint,classGI) :
+    def getGain(self,training_set,columnNO,splittingPoint,classEntropy) :
         c = Counter(elem[-1] for elem in training_set if float(elem[columnNO]) > splittingPoint)
         p1 = c['1']
         n1 = c['0']
         c = Counter(elem[-1] for elem in training_set if float(elem[columnNO]) <= splittingPoint)
         p2 = c['1']
         n2 = c['0']
-        giniIndex = ((p1+n1)*self.getGiniIndex(p1,n1) + (p2+n2)*self.getGiniIndex(p2,n2))/len(training_set)
 
-        return classGI - giniIndex
+        entropy = ((p1+n1)*self.getEntropy(p1,n1) + (p2+n2)*self.getEntropy(p2,n2))/len(training_set)
+
+        return classEntropy - entropy
 
     # implement the entropy function
-    def getGiniIndex(self,p,n):
-        index = 0
+    def getEntropy(self,p,n):
+        entropy = 0
         total = p + n
-        if total > 0:
-            index = 1
-            index -= (p/total)*(p/total)
-            index -= (n/total)*(n/total)
-        return index
+        if(p>0) :
+            entropy -= (p/total)*math.log(p/total,2)
+        if(n>0) :
+            entropy -= (n/total)*math.log(n/total,2)
+        return entropy
 
 
 def run_decision_tree():
@@ -144,7 +162,6 @@ def run_decision_tree():
         next(f, None)
         data = [tuple(line) for line in csv.reader(f, delimiter=",")]
     print ("Number of records: %d" % len(data))
-
     # Split training/test sets
     # You need to modify the following code for cross validation.
     K = 10
