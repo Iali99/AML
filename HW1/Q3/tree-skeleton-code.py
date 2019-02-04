@@ -179,13 +179,12 @@ def run_decision_tree():
         next(f, None)
         data = [tuple(line) for line in csv.reader(f, delimiter=",")]
     print ("Number of records: %d" % len(data))
-
     # Split training/test sets
     # You need to modify the following code for cross validation.
     K = 10
     m = 0
     results = []
-    while m < 2 :
+    while m < 10 :
         training_set = [x for i, x in enumerate(data) if i % K != m]
         test_set = [x for i, x in enumerate(data) if i % K == m]
 
